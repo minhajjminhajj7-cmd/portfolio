@@ -1,218 +1,334 @@
+import { useEffect, useState } from "react";
+
 function Projects() {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // =========================================================
+  // FETCH PROJECTS FROM BACKEND
+  // =========================================================
+
+  const fetchProjects = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(
+        "http://localhost:5001/api/projects"
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch projects");
+      }
+
+      const data = await response.json();
+
+      setProjects(data);
+    } catch (error) {
+      console.error(
+        "Error fetching projects:",
+        error
+      );
+
+      setError(
+        "Unable to load projects. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =========================================================
+  // LOAD PROJECTS WHEN COMPONENT MOUNTS
+  // =========================================================
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  // =========================================================
+  // LOADING STATE
+  // =========================================================
+
+  if (loading) {
+    return (
+      <section
+        id="projects"
+        className="py-20 bg-gray-900 text-white"
+      >
+        <div className="max-w-6xl mx-auto px-6">
+
+          <h2 className="text-4xl font-bold text-center mb-12">
+            My Projects
+          </h2>
+
+          <div className="flex justify-center">
+
+            <div className="text-center">
+
+              <div className="w-12 h-12 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+
+              <p className="text-gray-400">
+                Loading projects...
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+    );
+  }
+
+  // =========================================================
+  // ERROR STATE
+  // =========================================================
+
+  if (error) {
+    return (
+      <section
+        id="projects"
+        className="py-20 bg-gray-900 text-white"
+      >
+        <div className="max-w-6xl mx-auto px-6">
+
+          <h2 className="text-4xl font-bold text-center mb-12">
+            My Projects
+          </h2>
+
+          <div className="max-w-xl mx-auto text-center bg-red-500/10 border border-red-500 rounded-xl p-8">
+
+            <div className="text-5xl mb-4">
+              ⚠️
+            </div>
+
+            <p className="text-red-400 mb-5">
+              {error}
+            </p>
+
+            <button
+              onClick={fetchProjects}
+              className="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-lg transition"
+            >
+              Try Again
+            </button>
+
+          </div>
+
+        </div>
+      </section>
+    );
+  }
+
+  // =========================================================
+  // EMPTY STATE
+  // =========================================================
+
+  if (projects.length === 0) {
+    return (
+      <section
+        id="projects"
+        className="py-20 bg-gray-900 text-white"
+      >
+        <div className="max-w-6xl mx-auto px-6">
+
+          <h2 className="text-4xl font-bold text-center mb-12">
+            My Projects
+          </h2>
+
+          <div className="text-center bg-gray-800 rounded-xl p-10">
+
+            <div className="text-5xl mb-4">
+              📂
+            </div>
+
+            <p className="text-gray-400">
+              No projects available yet.
+            </p>
+
+          </div>
+
+        </div>
+      </section>
+    );
+  }
+
+  // =========================================================
+  // PROJECTS
+  // =========================================================
+
   return (
     <section
       id="projects"
-      className="max-w-7xl mx-auto px-8 py-24"
+      className="py-20 bg-gray-900 text-white"
     >
+      <div className="max-w-6xl mx-auto px-6">
 
-      <div className="mb-12">
+        {/* SECTION TITLE */}
 
-        <p className="text-gray-500 uppercase tracking-widest text-sm">
-          My Work
-        </p>
+        <div className="text-center mb-12">
 
-        <h2 className="text-4xl md:text-5xl font-bold mt-3">
-          Featured Projects
-        </h2>
+          <p className="text-blue-400 font-medium mb-2">
+            MY WORK
+          </p>
 
-        <p className="text-gray-400 text-lg mt-4 max-w-2xl">
-          Here are some of the projects I have worked on while
-          learning and developing my software engineering skills.
-        </p>
+          <h2 className="text-4xl md:text-5xl font-bold">
+            My Projects
+          </h2>
 
-      </div>
-
-
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-
-        {/* CampusBuddy */}
-        <div className="border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-600 transition">
-
-          <div className="h-48 bg-gray-900 flex items-center justify-center">
-            <span className="text-gray-600 text-4xl font-bold">
-              CB
-            </span>
-          </div>
-
-          <div className="p-6">
-
-            <h3 className="text-2xl font-semibold">
-              CampusBuddy
-            </h3>
-
-            <p className="text-gray-400 mt-3 leading-relaxed">
-              A student-focused platform that helps students find
-              campus information, timetables, contacts, events,
-              and other important college resources.
-            </p>
-
-            <div className="flex flex-wrap gap-2 mt-5">
-
-              <span className="text-sm px-3 py-1 bg-gray-900 rounded">
-                React
-              </span>
-
-              <span className="text-sm px-3 py-1 bg-gray-900 rounded">
-                Spring Boot
-              </span>
-
-              <span className="text-sm px-3 py-1 bg-gray-900 rounded">
-                MySQL
-              </span>
-
-            </div>
-
-            <div className="flex gap-4 mt-6">
-
-              <a
-                href="#"
-                className="text-sm font-semibold hover:text-gray-400"
-              >
-                GitHub →
-              </a>
-
-              <a
-                href="#"
-                className="text-sm font-semibold hover:text-gray-400"
-              >
-                Live Demo →
-              </a>
-
-            </div>
-
-          </div>
+          <p className="text-gray-400 mt-4 max-w-2xl mx-auto">
+            Here are some of the projects I have built
+            using modern technologies and development
+            tools.
+          </p>
 
         </div>
 
+        {/* PROJECT GRID */}
 
-        {/* Car Rental */}
-        <div className="border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-600 transition">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
 
-          <div className="h-48 bg-gray-900 flex items-center justify-center">
-            <span className="text-gray-600 text-4xl font-bold">
-              CR
-            </span>
-          </div>
+          {projects.map((project) => (
 
-          <div className="p-6">
+            <article
+              key={project.id}
+              className="bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 hover:border-blue-500 hover:-translate-y-2 transition duration-300 shadow-lg"
+            >
 
-            <h3 className="text-2xl font-semibold">
-              Car Rental Management System
-            </h3>
+              {/* =================================================
+                  PROJECT IMAGE
+              ================================================== */}
 
-            <p className="text-gray-400 mt-3 leading-relaxed">
-              A full-stack car rental platform with authentication,
-              car management, booking, search, payments, and
-              administrative features.
-            </p>
+              {project.image_url ? (
 
-            <div className="flex flex-wrap gap-2 mt-5">
+                <div className="relative">
 
-              <span className="text-sm px-3 py-1 bg-gray-900 rounded">
-                React
-              </span>
+                  <img
+                    src={project.image_url}
+                    alt={project.title}
+                    className="w-full h-52 object-cover"
+                  />
 
-              <span className="text-sm px-3 py-1 bg-gray-900 rounded">
-                Spring Boot
-              </span>
+                  <div className="absolute inset-0 bg-black/20 hover:bg-transparent transition" />
 
-              <span className="text-sm px-3 py-1 bg-gray-900 rounded">
-                MySQL
-              </span>
+                </div>
 
-              <span className="text-sm px-3 py-1 bg-gray-900 rounded">
-                JWT
-              </span>
+              ) : (
 
-            </div>
+                <div className="w-full h-52 bg-gradient-to-br from-gray-800 to-gray-700 flex items-center justify-center">
 
-            <div className="flex gap-4 mt-6">
+                  <div className="text-center">
 
-              <a
-                href="#"
-                className="text-sm font-semibold hover:text-gray-400"
-              >
-                GitHub →
-              </a>
+                    <div className="text-5xl mb-2">
+                      💻
+                    </div>
 
-              <a
-                href="#"
-                className="text-sm font-semibold hover:text-gray-400"
-              >
-                Live Demo →
-              </a>
+                    <p className="text-gray-400">
+                      Project
+                    </p>
 
-            </div>
+                  </div>
 
-          </div>
+                </div>
 
-        </div>
+              )}
 
+              {/* =================================================
+                  PROJECT CONTENT
+              ================================================== */}
 
-        {/* Digital Diary */}
-        <div className="border border-gray-800 rounded-2xl overflow-hidden hover:border-gray-600 transition">
+              <div className="p-6">
 
-          <div className="h-48 bg-gray-900 flex items-center justify-center">
-            <span className="text-gray-600 text-4xl font-bold">
-              DD
-            </span>
-          </div>
+                {/* TITLE */}
 
-          <div className="p-6">
+                <h3 className="text-2xl font-semibold mb-3">
+                  {project.title}
+                </h3>
 
-            <h3 className="text-2xl font-semibold">
-              Digital Diary
-            </h3>
+                {/* DESCRIPTION */}
 
-            <p className="text-gray-400 mt-3 leading-relaxed">
-              A digital diary application designed to help students
-              organize, store, and manage their personal academic
-              information digitally.
-            </p>
+                <p className="text-gray-300 leading-relaxed mb-5">
+                  {project.description}
+                </p>
 
-            <div className="flex flex-wrap gap-2 mt-5">
+                {/* TECHNOLOGIES */}
 
-              <span className="text-sm px-3 py-1 bg-gray-900 rounded">
-                Flutter
-              </span>
+                {project.technologies && (
 
-              <span className="text-sm px-3 py-1 bg-gray-900 rounded">
-                Dart
-              </span>
+                  <div className="mb-6">
 
-              <span className="text-sm px-3 py-1 bg-gray-900 rounded">
-                Database
-              </span>
+                    <p className="text-sm text-gray-400 mb-3">
+                      Technologies
+                    </p>
 
-            </div>
+                    <div className="flex flex-wrap gap-2">
 
-            <div className="flex gap-4 mt-6">
+                      {project.technologies
+                        .split(",")
+                        .map(
+                          (technology, index) => (
+                            <span
+                              key={index}
+                              className="bg-gray-700 text-blue-300 text-xs px-3 py-1 rounded-full"
+                            >
+                              {technology.trim()}
+                            </span>
+                          )
+                        )}
 
-              <a
-                href="#"
-                className="text-sm font-semibold hover:text-gray-400"
-              >
-                GitHub →
-              </a>
+                    </div>
 
-              <a
-                href="#"
-                className="text-sm font-semibold hover:text-gray-400"
-              >
-                Details →
-              </a>
+                  </div>
 
-            </div>
+                )}
 
-          </div>
+                {/* =================================================
+                    BUTTONS
+                ================================================== */}
+
+                <div className="flex flex-wrap gap-3">
+
+                  {project.github_url && (
+
+                    <a
+                      href={project.github_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition font-medium"
+                    >
+                      GitHub ↗
+                    </a>
+
+                  )}
+
+                  {project.live_url && (
+
+                    <a
+                      href={project.live_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition font-medium"
+                    >
+                      Live Demo ↗
+                    </a>
+
+                  )}
+
+                </div>
+
+              </div>
+
+            </article>
+
+          ))}
 
         </div>
 
       </div>
-
     </section>
-  )
+  );
 }
 
-export default Projects
+export default Projects;

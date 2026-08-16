@@ -1,121 +1,295 @@
+import { useEffect, useState } from "react";
+
 function Skills() {
+  const [skills, setSkills] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // =========================================================
+  // FETCH SKILLS
+  // =========================================================
+
+  const fetchSkills = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await fetch(
+        "http://localhost:5001/api/skills"
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch skills");
+      }
+
+      const data = await response.json();
+
+      setSkills(data);
+    } catch (error) {
+      console.error(
+        "Error fetching skills:",
+        error
+      );
+
+      setError(
+        "Unable to load skills. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =========================================================
+  // LOAD SKILLS WHEN COMPONENT MOUNTS
+  // =========================================================
+
+  useEffect(() => {
+    fetchSkills();
+  }, []);
+
+  // =========================================================
+  // LOADING
+  // =========================================================
+
+  if (loading) {
+    return (
+      <section
+        id="skills"
+        className="py-20 bg-gray-950 text-white"
+      >
+        <div className="max-w-6xl mx-auto px-6">
+
+          <div className="text-center mb-12">
+
+            <p className="text-blue-400 font-medium mb-2">
+              WHAT I KNOW
+            </p>
+
+            <h2 className="text-4xl md:text-5xl font-bold">
+              My Skills
+            </h2>
+
+          </div>
+
+          <div className="flex justify-center">
+
+            <div className="text-center">
+
+              <div className="w-12 h-12 border-4 border-gray-600 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+
+              <p className="text-gray-400">
+                Loading skills...
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+    );
+  }
+
+  // =========================================================
+  // ERROR
+  // =========================================================
+
+  if (error) {
+    return (
+      <section
+        id="skills"
+        className="py-20 bg-gray-950 text-white"
+      >
+        <div className="max-w-6xl mx-auto px-6">
+
+          <div className="text-center mb-12">
+
+            <p className="text-blue-400 font-medium mb-2">
+              WHAT I KNOW
+            </p>
+
+            <h2 className="text-4xl md:text-5xl font-bold">
+              My Skills
+            </h2>
+
+          </div>
+
+          <div className="max-w-xl mx-auto text-center bg-red-500/10 border border-red-500 rounded-xl p-8">
+
+            <div className="text-5xl mb-4">
+              ⚠️
+            </div>
+
+            <p className="text-red-400 mb-5">
+              {error}
+            </p>
+
+            <button
+              onClick={fetchSkills}
+              className="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-lg transition"
+            >
+              Try Again
+            </button>
+
+          </div>
+
+        </div>
+      </section>
+    );
+  }
+
+  // =========================================================
+  // EMPTY
+  // =========================================================
+
+  if (skills.length === 0) {
+    return (
+      <section
+        id="skills"
+        className="py-20 bg-gray-950 text-white"
+      >
+        <div className="max-w-6xl mx-auto px-6">
+
+          <div className="text-center mb-12">
+
+            <p className="text-blue-400 font-medium mb-2">
+              WHAT I KNOW
+            </p>
+
+            <h2 className="text-4xl md:text-5xl font-bold">
+              My Skills
+            </h2>
+
+          </div>
+
+          <div className="text-center bg-gray-800 rounded-xl p-10">
+
+            <div className="text-5xl mb-4">
+              🛠️
+            </div>
+
+            <p className="text-gray-400">
+              No skills available yet.
+            </p>
+
+          </div>
+
+        </div>
+      </section>
+    );
+  }
+
+  // =========================================================
+  // SKILLS
+  // =========================================================
+
   return (
-    <section id="skills" className="max-w-7xl mx-auto px-8 py-24">
+    <section
+      id="skills"
+      className="py-20 bg-gray-950 text-white"
+    >
+      <div className="max-w-6xl mx-auto px-6">
 
-      <p className="text-gray-500 uppercase tracking-widest text-sm">
-        My Skills
-      </p>
+        {/* ===================================================
+            HEADER
+        ==================================================== */}
 
-      <h2 className="text-4xl md:text-5xl font-bold mt-3">
-        Technologies I Work With
-      </h2>
+        <div className="text-center mb-12">
 
-      <p className="text-gray-400 text-lg mt-4 max-w-2xl">
-        I use different technologies to build modern and useful
-        software applications.
-      </p>
+          <p className="text-blue-400 font-medium mb-2">
+            WHAT I KNOW
+          </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
+          <h2 className="text-4xl md:text-5xl font-bold">
+            My Skills
+          </h2>
 
-        <div className="border border-gray-800 rounded-xl p-6">
-          <h3 className="text-xl font-semibold mb-4">
-            Frontend
-          </h3>
+          <p className="text-gray-400 mt-4 max-w-2xl mx-auto">
+            Technologies and tools I use to build modern,
+            reliable, and scalable applications.
+          </p>
 
-          <div className="flex flex-wrap gap-3">
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              HTML
-            </span>
-
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              CSS
-            </span>
-
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              JavaScript
-            </span>
-
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              React
-            </span>
-
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              Tailwind CSS
-            </span>
-          </div>
         </div>
 
+        {/* ===================================================
+            SKILL GRID
+        ==================================================== */}
 
-        <div className="border border-gray-800 rounded-xl p-6">
-          <h3 className="text-xl font-semibold mb-4">
-            Backend
-          </h3>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-          <div className="flex flex-wrap gap-3">
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              Java
-            </span>
+          {skills.map((skill) => {
 
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              Spring Boot
-            </span>
+            const proficiency = Math.min(
+              Math.max(Number(skill.proficiency) || 0, 0),
+              100
+            );
 
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              PHP
-            </span>
+            return (
+              <div
+                key={skill.id}
+                className="bg-gray-800 border border-gray-700 rounded-2xl p-6 hover:border-blue-500 hover:-translate-y-1 transition duration-300 shadow-lg"
+              >
 
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              REST API
-            </span>
-          </div>
-        </div>
+                {/* SKILL HEADER */}
 
+                <div className="flex justify-between items-center mb-3">
 
-        <div className="border border-gray-800 rounded-xl p-6">
-          <h3 className="text-xl font-semibold mb-4">
-            Database
-          </h3>
+                  <div>
 
-          <div className="flex flex-wrap gap-3">
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              MySQL
-            </span>
+                    <h3 className="text-xl font-semibold">
+                      {skill.name}
+                    </h3>
 
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              SQL
-            </span>
-          </div>
-        </div>
+                    {skill.category && (
+                      <p className="text-sm text-gray-400 mt-1">
+                        {skill.category}
+                      </p>
+                    )}
 
+                  </div>
 
-        <div className="border border-gray-800 rounded-xl p-6">
-          <h3 className="text-xl font-semibold mb-4">
-            Tools
-          </h3>
+                  <span className="text-blue-400 font-bold text-lg">
+                    {proficiency}%
+                  </span>
 
-          <div className="flex flex-wrap gap-3">
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              Git
-            </span>
+                </div>
 
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              GitHub
-            </span>
+                {/* PROGRESS BAR */}
 
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              VS Code
-            </span>
+                <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
 
-            <span className="border border-gray-800 rounded-lg px-4 py-2">
-              Linux
-            </span>
-          </div>
+                  <div
+                    className="bg-blue-500 h-3 rounded-full transition-all duration-1000"
+                    style={{
+                      width: `${proficiency}%`,
+                    }}
+                  />
+
+                </div>
+
+                {/* PROFICIENCY LABEL */}
+
+                <div className="flex justify-between text-xs text-gray-500 mt-2">
+
+                  <span>
+                    Beginner
+                  </span>
+
+                  <span>
+                    Expert
+                  </span>
+
+                </div>
+
+              </div>
+            );
+          })}
+
         </div>
 
       </div>
-
     </section>
-  )
+  );
 }
 
-export default Skills
+export default Skills;
