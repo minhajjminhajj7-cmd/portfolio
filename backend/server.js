@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -10,7 +11,7 @@ const projectRoutes = require("./routes/projectRoutes");
 const skillRoutes = require("./routes/skillRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const heroRoutes = require("./routes/heroRoutes");
-
+const aboutRoutes = require("./routes/aboutRoutes");
 const app = express();
 
 const PORT = 5001;
@@ -41,7 +42,7 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/skills", skillRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/hero", heroRoutes);
-
+app.use("/api/about", aboutRoutes);
 // =====================================================
 // START SERVER
 // =====================================================

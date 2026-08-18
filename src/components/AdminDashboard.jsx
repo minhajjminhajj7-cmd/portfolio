@@ -8,6 +8,7 @@ function AdminDashboard({ admin, onLogout }) {
   // =========================================================
 
   const [hero, setHero] = useState(null);
+  const [about, setAbout] = useState(null);
   const [projects, setProjects] = useState([]);
   const [skills, setSkills] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -25,13 +26,27 @@ function AdminDashboard({ admin, onLogout }) {
   const [heroMessage, setHeroMessage] = useState("");
 
   const [heroForm, setHeroForm] = useState({
+    greeting: "",
     name: "",
     title: "",
     description: "",
-    primary_button_text: "",
-    primary_button_link: "",
-    secondary_button_text: "",
-    secondary_button_link: "",
+    projects_button_text: "",
+    contact_button_text: "",
+  });
+
+  // =========================================================
+  // ABOUT STATES
+  // =========================================================
+
+  const [showAboutForm, setShowAboutForm] = useState(false);
+  const [editingAbout, setEditingAbout] = useState(null);
+  const [aboutLoading, setAboutLoading] = useState(false);
+  const [aboutMessage, setAboutMessage] = useState("");
+
+  const [aboutForm, setAboutForm] = useState({
+    heading: "",
+    paragraph1: "",
+    paragraph2: "",
   });
 
   // =========================================================
@@ -81,11 +96,13 @@ function AdminDashboard({ admin, onLogout }) {
 
       const [
         heroResponse,
+        aboutResponse,
         projectsResponse,
         skillsResponse,
         messagesResponse,
       ] = await Promise.all([
         fetch(`${API_URL}/hero`),
+        fetch(`${API_URL}/about`),
         fetch(`${API_URL}/projects`),
         fetch(`${API_URL}/skills`),
         fetch(`${API_URL}/messages`),
@@ -93,6 +110,10 @@ function AdminDashboard({ admin, onLogout }) {
 
       if (!heroResponse.ok) {
         throw new Error("Failed to load hero");
+      }
+
+      if (!aboutResponse.ok) {
+        throw new Error("Failed to load about");
       }
 
       if (!projectsResponse.ok) {
@@ -108,11 +129,13 @@ function AdminDashboard({ admin, onLogout }) {
       }
 
       const heroData = await heroResponse.json();
+      const aboutData = await aboutResponse.json();
       const projectsData = await projectsResponse.json();
       const skillsData = await skillsResponse.json();
       const messagesData = await messagesResponse.json();
 
       setHero(heroData);
+      setAbout(aboutData);
       setProjects(projectsData);
       setSkills(skillsData);
       setMessages(messagesData);
@@ -139,13 +162,12 @@ function AdminDashboard({ admin, onLogout }) {
     setEditingHero(null);
 
     setHeroForm({
+      greeting: "",
       name: "",
       title: "",
       description: "",
-      primary_button_text: "",
-      primary_button_link: "",
-      secondary_button_text: "",
-      secondary_button_link: "",
+      projects_button_text: "",
+      contact_button_text: "",
     });
 
     setHeroMessage("");
@@ -158,13 +180,12 @@ function AdminDashboard({ admin, onLogout }) {
     setEditingHero(hero);
 
     setHeroForm({
+      greeting: hero.greeting || "",
       name: hero.name || "",
       title: hero.title || "",
       description: hero.description || "",
-      primary_button_text: hero.primary_button_text || "",
-      primary_button_link: hero.primary_button_link || "",
-      secondary_button_text: hero.secondary_button_text || "",
-      secondary_button_link: hero.secondary_button_link || "",
+      projects_button_text: hero.projects_button_text || "",
+      contact_button_text: hero.contact_button_text || "",
     });
 
     setHeroMessage("");
@@ -261,6 +282,139 @@ function AdminDashboard({ admin, onLogout }) {
       await fetchDashboardData();
     } catch (err) {
       console.error("Delete hero error:", err);
+      alert(err.message);
+    }
+  };
+
+  // =========================================================
+  // ABOUT
+  // =========================================================
+
+  const handleAboutChange = (e) => {
+    setAboutForm({
+      ...aboutForm,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const openAddAbout = () => {
+    setEditingAbout(null);
+
+    setAboutForm({
+      heading: "",
+      paragraph1: "",
+      paragraph2: "",
+    });
+
+    setAboutMessage("");
+    setShowAboutForm(true);
+  };
+
+  const openEditAbout = () => {
+    if (!about) return;
+
+    setEditingAbout(about);
+
+    setAboutForm({
+      heading: about.heading || "",
+      paragraph1: about.paragraph1 || "",
+      paragraph2: about.paragraph2 || "",
+    });
+
+    setAboutMessage("");
+    setShowAboutForm(true);
+  };
+
+  const handleAboutSubmit = async (e) => {
+    e.preventDefault();
+
+    setAboutLoading(true);
+    setAboutMessage("");
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const url = editingAbout
+        ? `${API_URL}/about/${editingAbout.id}`
+        : `${API_URL}/about`;
+
+      const method = editingAbout ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(aboutForm),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Failed to save about"
+        );
+      }
+
+      setAboutMessage(
+        editingAbout
+          ? "About updated successfully! 🚀"
+          : "About added successfully! 🚀"
+      );
+
+      await fetchDashboardData();
+
+      setTimeout(() => {
+        setShowAboutForm(false);
+        setEditingAbout(null);
+        setAboutMessage("");
+      }, 1000);
+    } catch (err) {
+      console.error("About error:", err);
+      setAboutMessage(err.message);
+    } finally {
+      setAboutLoading(false);
+    }
+  };
+
+  const handleDeleteAbout = async () => {
+    if (!about) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete your About Me content?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `${API_URL}/about/${about.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Failed to delete about"
+        );
+      }
+
+      setAbout(null);
+
+      alert("About deleted successfully! 🗑️");
+
+      await fetchDashboardData();
+    } catch (err) {
+      console.error("Delete about error:", err);
       alert(err.message);
     }
   };
@@ -690,7 +844,7 @@ function AdminDashboard({ admin, onLogout }) {
             STATISTICS
         ==================================================== */}
 
-        <div className="grid md:grid-cols-4 gap-6 mb-12">
+        <div className="grid md:grid-cols-5 gap-6 mb-12">
 
           <div className="bg-gray-800 rounded-xl p-6">
             <p className="text-gray-400 mb-2">
@@ -699,6 +853,16 @@ function AdminDashboard({ admin, onLogout }) {
 
             <h2 className="text-4xl font-bold">
               {hero ? "1" : "0"}
+            </h2>
+          </div>
+
+          <div className="bg-gray-800 rounded-xl p-6">
+            <p className="text-gray-400 mb-2">
+              About
+            </p>
+
+            <h2 className="text-4xl font-bold">
+              {about ? "1" : "0"}
             </h2>
           </div>
 
@@ -792,6 +956,23 @@ function AdminDashboard({ admin, onLogout }) {
 
               <form onSubmit={handleHeroSubmit}>
 
+                {/* GREETING */}
+
+                <div className="mb-5">
+                  <label className="block text-gray-300 mb-2">
+                    Greeting
+                  </label>
+
+                  <input
+                    type="text"
+                    name="greeting"
+                    value={heroForm.greeting}
+                    onChange={handleHeroChange}
+                    placeholder="WELCOME TO MY PORTFOLIO"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
                 {/* NAME */}
 
                 <div className="mb-5">
@@ -805,7 +986,7 @@ function AdminDashboard({ admin, onLogout }) {
                     value={heroForm.name}
                     onChange={handleHeroChange}
                     required
-                    placeholder="e.g. Minhajj Minhajj"
+                    placeholder="e.g. Minhajj"
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -814,7 +995,7 @@ function AdminDashboard({ admin, onLogout }) {
 
                 <div className="mb-5">
                   <label className="block text-gray-300 mb-2">
-                    Professional Title *
+                    Professional Title
                   </label>
 
                   <input
@@ -822,8 +1003,7 @@ function AdminDashboard({ admin, onLogout }) {
                     name="title"
                     value={heroForm.title}
                     onChange={handleHeroChange}
-                    required
-                    placeholder="e.g. Computer Science Student & Full-Stack Developer"
+                    placeholder="e.g. Computer Science Student | Software Developer"
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
                   />
                 </div>
@@ -832,94 +1012,53 @@ function AdminDashboard({ admin, onLogout }) {
 
                 <div className="mb-5">
                   <label className="block text-gray-300 mb-2">
-                    Description *
+                    Description
                   </label>
 
                   <textarea
                     name="description"
                     value={heroForm.description}
                     onChange={handleHeroChange}
-                    required
                     rows="5"
                     placeholder="Write your introduction..."
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
                   />
                 </div>
 
-                {/* PRIMARY BUTTON */}
-
-                <div className="grid md:grid-cols-2 gap-5 mb-5">
-
-                  <div>
-                    <label className="block text-gray-300 mb-2">
-                      Primary Button Text
-                    </label>
-
-                    <input
-                      type="text"
-                      name="primary_button_text"
-                      value={
-                        heroForm.primary_button_text
-                      }
-                      onChange={handleHeroChange}
-                      placeholder="View My Projects"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-300 mb-2">
-                      Primary Button Link
-                    </label>
-
-                    <input
-                      type="text"
-                      name="primary_button_link"
-                      value={
-                        heroForm.primary_button_link
-                      }
-                      onChange={handleHeroChange}
-                      placeholder="#projects"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3"
-                    />
-                  </div>
-
-                </div>
-
-                {/* SECONDARY BUTTON */}
+                {/* BUTTONS */}
 
                 <div className="grid md:grid-cols-2 gap-5 mb-6">
 
                   <div>
                     <label className="block text-gray-300 mb-2">
-                      Secondary Button Text
+                      Projects Button Text
                     </label>
 
                     <input
                       type="text"
-                      name="secondary_button_text"
+                      name="projects_button_text"
                       value={
-                        heroForm.secondary_button_text
+                        heroForm.projects_button_text
                       }
                       onChange={handleHeroChange}
-                      placeholder="Contact Me"
+                      placeholder="View My Work"
                       className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3"
                     />
                   </div>
 
                   <div>
                     <label className="block text-gray-300 mb-2">
-                      Secondary Button Link
+                      Contact Button Text
                     </label>
 
                     <input
                       type="text"
-                      name="secondary_button_link"
+                      name="contact_button_text"
                       value={
-                        heroForm.secondary_button_link
+                        heroForm.contact_button_text
                       }
                       onChange={handleHeroChange}
-                      placeholder="#contact"
+                      placeholder="Let's Talk"
                       className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3"
                     />
                   </div>
@@ -948,7 +1087,7 @@ function AdminDashboard({ admin, onLogout }) {
             </div>
           )}
 
-          {/* HERO DISPLAY */}
+          {/* NO HERO */}
 
           {!hero && !showHeroForm && (
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-10 text-center">
@@ -976,6 +1115,8 @@ function AdminDashboard({ admin, onLogout }) {
             </div>
           )}
 
+          {/* HERO DISPLAY */}
+
           {hero && !showHeroForm && (
             <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
 
@@ -983,9 +1124,11 @@ function AdminDashboard({ admin, onLogout }) {
 
                 <div className="flex-1">
 
-                  <p className="text-gray-400 text-sm mb-2">
-                    Hello, I'm
-                  </p>
+                  {hero.greeting && (
+                    <p className="text-gray-400 text-sm mb-2">
+                      {hero.greeting}
+                    </p>
+                  )}
 
                   <h3 className="text-3xl font-bold mb-2">
                     {hero.name}
@@ -1001,15 +1144,15 @@ function AdminDashboard({ admin, onLogout }) {
 
                   <div className="flex flex-wrap gap-3">
 
-                    {hero.primary_button_text && (
+                    {hero.projects_button_text && (
                       <span className="bg-gray-800 px-4 py-2 rounded-lg text-sm">
-                        {hero.primary_button_text}
+                        {hero.projects_button_text}
                       </span>
                     )}
 
-                    {hero.secondary_button_text && (
+                    {hero.contact_button_text && (
                       <span className="bg-gray-800 px-4 py-2 rounded-lg text-sm">
-                        {hero.secondary_button_text}
+                        {hero.contact_button_text}
                       </span>
                     )}
 
@@ -1028,6 +1171,225 @@ function AdminDashboard({ admin, onLogout }) {
 
                   <button
                     onClick={handleDeleteHero}
+                    className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg"
+                  >
+                    Delete
+                  </button>
+
+                </div>
+
+              </div>
+
+            </div>
+          )}
+
+        </section>
+
+        {/* ===================================================
+            ABOUT ME
+        ==================================================== */}
+
+        <section className="mb-12">
+
+          <div className="flex justify-between items-center mb-5">
+
+            <div>
+              <h2 className="text-2xl font-bold">
+                About Me
+              </h2>
+
+              <p className="text-gray-400 text-sm mt-1">
+                Manage the information displayed in your
+                About Me section.
+              </p>
+            </div>
+
+            {!about && (
+              <button
+                onClick={openAddAbout}
+                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition"
+              >
+                + Add About
+              </button>
+            )}
+
+          </div>
+
+          {/* ABOUT FORM */}
+
+          {showAboutForm && (
+            <div className="bg-gray-900 rounded-xl p-6 mb-6 border border-blue-600">
+
+              <div className="flex justify-between items-center mb-6">
+
+                <h3 className="text-xl font-semibold">
+                  {editingAbout
+                    ? "Edit About Me"
+                    : "Add About Me"}
+                </h3>
+
+                <button
+                  onClick={() => {
+                    setShowAboutForm(false);
+                    setEditingAbout(null);
+                    setAboutMessage("");
+                  }}
+                  className="text-gray-400 hover:text-white text-xl"
+                >
+                  ✕
+                </button>
+
+              </div>
+
+              <form onSubmit={handleAboutSubmit}>
+
+                {/* HEADING */}
+
+                <div className="mb-5">
+
+                  <label className="block text-gray-300 mb-2">
+                    Heading *
+                  </label>
+
+                  <input
+                    type="text"
+                    name="heading"
+                    value={aboutForm.heading}
+                    onChange={handleAboutChange}
+                    required
+                    placeholder="e.g. About Me"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                  />
+
+                </div>
+
+                {/* PARAGRAPH 1 */}
+
+                <div className="mb-5">
+
+                  <label className="block text-gray-300 mb-2">
+                    First Paragraph
+                  </label>
+
+                  <textarea
+                    name="paragraph1"
+                    value={aboutForm.paragraph1}
+                    onChange={handleAboutChange}
+                    rows="6"
+                    placeholder="Tell visitors about yourself..."
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                  />
+
+                </div>
+
+                {/* PARAGRAPH 2 */}
+
+                <div className="mb-6">
+
+                  <label className="block text-gray-300 mb-2">
+                    Second Paragraph
+                  </label>
+
+                  <textarea
+                    name="paragraph2"
+                    value={aboutForm.paragraph2}
+                    onChange={handleAboutChange}
+                    rows="6"
+                    placeholder="Tell visitors more about your skills, goals and interests..."
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500"
+                  />
+
+                </div>
+
+                {aboutMessage && (
+                  <div className="mb-5 bg-blue-500/10 border border-blue-500 text-blue-400 px-4 py-3 rounded-lg">
+                    {aboutMessage}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={aboutLoading}
+                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 px-6 py-3 rounded-lg font-semibold"
+                >
+                  {aboutLoading
+                    ? "Saving..."
+                    : editingAbout
+                    ? "Update About"
+                    : "Add About"}
+                </button>
+
+              </form>
+
+            </div>
+          )}
+
+          {/* NO ABOUT */}
+
+          {!about && !showAboutForm && (
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-10 text-center">
+
+              <div className="text-5xl mb-4">
+                👤
+              </div>
+
+              <h3 className="text-xl font-semibold mb-2">
+                No About Me Content
+              </h3>
+
+              <p className="text-gray-400 mb-6">
+                Add information about yourself to display
+                it on your portfolio.
+              </p>
+
+              <button
+                onClick={openAddAbout}
+                className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg"
+              >
+                + Add About
+              </button>
+
+            </div>
+          )}
+
+          {/* ABOUT DISPLAY */}
+
+          {about && !showAboutForm && (
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+
+              <div className="flex flex-col md:flex-row justify-between gap-6">
+
+                <div className="flex-1">
+
+                  <h3 className="text-2xl font-bold mb-5">
+                    {about.heading}
+                  </h3>
+
+                  {about.paragraph1 && (
+                    <p className="text-gray-400 leading-relaxed mb-4 whitespace-pre-wrap">
+                      {about.paragraph1}
+                    </p>
+                  )}
+
+                  {about.paragraph2 && (
+                    <p className="text-gray-400 leading-relaxed whitespace-pre-wrap">
+                      {about.paragraph2}
+                    </p>
+                  )}
+
+                </div>
+
+                <div className="flex gap-3 items-start">
+
+                  <button
+                    onClick={openEditAbout}
+                    className="bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded-lg"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={handleDeleteAbout}
                     className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg"
                   >
                     Delete
